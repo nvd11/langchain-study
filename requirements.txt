@@ -24,4 +24,5 @@ langchain-core==1.1.0
 langchain-deepseek==1.0.0
 langchain-google-genai==3.2.0
 langchain-openai==1.1.0
-langchain-text-splitters==1.0.0pytest-asyncio
+langchain-text-splitters==1.0.0
+pytest-asyncio
