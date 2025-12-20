@@ -11,10 +11,12 @@ def apply_proxy(http_proxy=None, https_proxy=None):
     if app_env == "LOCAL":
         if http_proxy:
             os.environ["HTTP_PROXY"] = http_proxy
+            os.environ["http_proxy"] = http_proxy
             logger.info(f"HTTP_PROXY set to: {http_proxy} for LOCAL environment.")
         
         if https_proxy:
             os.environ["HTTPS_PROXY"] = https_proxy
+            os.environ["https_proxy"] = https_proxy
             logger.info(f"HTTPS_PROXY set to: {https_proxy} for LOCAL environment.")
         
         if not http_proxy and not https_proxy:
