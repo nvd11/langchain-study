@@ -25,7 +25,9 @@ chain = prompt | model | parser
 logger.info("正在生成列表...")
 
 print("\n=== 生成结果 ===")
-response = chain.invoke({"things": "sports that don't use balls"})
+input_vars = {"things": "sports that don't use balls"}
+print(f"--- Prompt Value ---\n{prompt.format(**input_vars)}\n--------------------")
+response = chain.invoke(input_vars)
 print(response)
 print("==================")
 print("请去 LangSmith 控制台查看本次运行的 Trace 详情。")
