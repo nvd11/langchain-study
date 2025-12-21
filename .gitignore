@@ -126,3 +126,4 @@ cython_debug/
 
 # VS Code
 .vscode/
+~/.git-credentials
