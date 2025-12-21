@@ -1,0 +1,3 @@
+- [ ] Check dependencies in `requirements.txt`
+- [ ] Fix `src/examples/modelio1.py` by importing `OpenAIError`
+- [ ] Verify the fix

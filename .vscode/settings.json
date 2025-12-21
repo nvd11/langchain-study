@@ -7,5 +7,7 @@
     "python.envFile": "${workspaceFolder}/.env",
     "terminal.integrated.env.linux": {
         "PYTHONPATH": "${workspaceFolder}"
-    }
+    },
+    "python.languageServer": "Jedi",
+    "python.analysis.typeCheckingMode": "basic"
 }

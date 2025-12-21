@@ -1,5 +1,9 @@
 import src.configs.config  
 from loguru import logger
+from openai import OpenAIError
+from src.llm.gemini_chat_model import get_gemini_llm
+from src.llm.deepseek_chat_model import get_deepseek_llm
+import asyncio
 
 from langchain_openai import ChatOpenAI
 
@@ -21,6 +25,14 @@ except OpenAIError as e:
     logger.error(e)
 
 
+llm_gemini = get_gemini_llm()
+llm_deepseek = get_deepseek_llm()
 
 
+prompt = "how to be an ai engineer?"
+response = asyncio.run(llm_gemini.ainvoke(prompt))
+logger.info("response of gemini:" + str(response.content))
+
+response = asyncio.run(llm_deepseek.ainvoke(prompt))
+logger.info("response of deepseek:" + str(response.content))
 logger.info("done")
