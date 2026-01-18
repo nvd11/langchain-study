@@ -49,7 +49,7 @@ async def test_astream_e2e(llm_service: LLMService):
     End-to-end test for LLMService.astream() using real Gemini API.
     """
     logger.info("Running test_astream_e2e")
-    prompt = "Count from 1 to 5."
+    prompt = "tell me a long story about the sea."
     
     collected_content = ""
     chunk_count = 0
@@ -67,5 +67,33 @@ async def test_astream_e2e(llm_service: LLMService):
     assert chunk_count > 0, "Should receive at least one chunk"
     assert len(collected_content) > 0, "Total content should not be empty"
     # Basic check to see if it actually followed instructions (optional)
-    assert "1" in collected_content and "5" in collected_content
+    assert "sea" in collected_content and "blue" in collected_content
     logger.info("test_astream_e2e passed")
+
+async def test_astream_typewriter(llm_service: LLMService):
+    """
+    End-to-end test for LLMService.astream() with typewriter effect output to console.
+    """
+    logger.info("Running test_astream_typewriter")
+    print("\n--- Start of Typewriter Output ---\n")
+    prompt = "tell me a long poem about coding."
+    
+    collected_content = ""
+    chunk_count = 0
+    
+    try:
+        async for chunk in llm_service.astream(prompt):
+            chunk_count += 1
+            content = chunk.content
+            collected_content += content
+            # Typewriter effect: print immediately without newline and flush buffer
+            print(content, end="", flush=True)
+    except Exception as e:
+        pytest.fail(f"LLMService.astream() failed: {e}")
+
+    print("\n\n--- End of Typewriter Output ---\n")
+    logger.info(f"Total collected content length: {len(collected_content)}")
+    
+    assert chunk_count > 0, "Should receive at least one chunk"
+    assert len(collected_content) > 0, "Total content should not be empty"
+    logger.info("test_astream_typewriter passed")
