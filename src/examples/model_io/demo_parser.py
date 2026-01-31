@@ -1,40 +1,74 @@
 import src.configs.config
 from loguru import logger
 from langchain_core.prompts import PromptTemplate
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser, CommaSeparatedListOutputParser
+from langchain_core.output_parsers import StrOutputParser, CommaSeparatedListOutputParser, JsonOutputParser, PydanticOutputParser
+from pydantic import BaseModel, Field
 from src.llm.gemini_chat_model import get_gemini_llm
 
-# 1. 确保环境变量已加载 (.env)
-# 必须包含:
-# LANGCHAIN_TRACING_V2=true
-# LANGCHAIN_API_KEY=...
+llm = get_gemini_llm()
 
-# 2. 定义一个简单的链
-prompt = PromptTemplate(
-     template = "List 3 {things}",
-     input_variables=["things"]
+# ==========================================
+# 1. StrOutputParser (最基础：输出为字符串)
+# ==========================================
+logger.info("--- Demo 1: StrOutputParser ---")
+prompt1 = PromptTemplate.from_template("List 3 {things}")
+chain1 = prompt1 | llm | StrOutputParser()
+result1 = chain1.invoke({"things": "colors"})
+logger.info(f"Result type: {type(result1)}") # <class 'str'>
+logger.info(f"Result: {result1}")
+
+
+# ==========================================
+# 2. CommaSeparatedListOutputParser (输出为列表)
+# ==========================================
+logger.info("\n--- Demo 2: CommaSeparatedListOutputParser ---")
+prompt2 = PromptTemplate.from_template("List 3 {things}. Return as comma separated list.")
+chain2 = prompt2 | llm | CommaSeparatedListOutputParser()
+result2 = chain2.invoke({"things": "fruits"})
+logger.info(f"Result type: {type(result2)}") # <class 'list'>
+logger.info(f"Result: {result2}")
+
+
+# ==========================================
+# 3. JsonOutputParser (输出为字典)
+# ==========================================
+logger.info("\n--- Demo 3: JsonOutputParser ---")
+# 定义期望的数据结构
+prompt3 = PromptTemplate.from_template(
+    """
+    Return a JSON object with two fields: 'name' (string) and 'population' (int) for the city {city}.
+    Do not wrap in markdown code blocks.
+    """
 )
-model =  get_gemini_llm()
-parser = StrOutputParser()
-list_parser = CommaSeparatedListOutputParser()
+chain3 = prompt3 | llm | JsonOutputParser()
+result3 = chain3.invoke({"city": "Tokyo"})
+logger.info(f"Result type: {type(result3)}") # <class 'dict'>
+logger.info(f"Result: {result3}")
 
-chain = prompt | model | parser
-chain2 = prompt | model | list_parser
 
-# 3. 运行链
-# 这次运行会自动被 LangSmith 记录，因为环境变量开关已打开
-logger.info("正在生成列表...")
+# ==========================================
+# 4. PydanticOutputParser (最强大：输出为强类型对象)
+# ==========================================
+logger.info("\n--- Demo 4: PydanticOutputParser ---")
 
-print("\n=== 生成结果 ===")
-input_vars = {"things": "sports that don't use balls"}
-# **input_vars: The double asterisks unpack the dictionary into keyword arguments.
-# Example: {"things": "..."} becomes the argument things="..."
-# A single asterisk (*) is used for unpacking Lists (positional arguments).
-print(f"--- Prompt Value ---\n{prompt.format(**input_vars)}\n--------------------")
-response = chain.invoke(input_vars)
-logger.info(f"type of response: {type(response)}\n response: {response}")
-print("==================")
-response = chain2.invoke(input_vars)
-logger.info(f"type of response: {type(response)}\n response: {response}")
-print("请去 LangSmith 控制台查看本次运行的 Trace 详情。")
+# 定义数据模型
+class Country(BaseModel):
+    name: str = Field(description="name of the country")
+    capital: str = Field(description="capital city of the country")
+    population: int = Field(description="approximate population")
+
+parser = PydanticOutputParser(pydantic_object=Country)
+
+# 将格式说明注入 Prompt
+prompt4 = PromptTemplate(
+    template="Answer the user query.\n{format_instructions}\n\nQuery: {query}",
+    input_variables=["query"],
+    partial_variables={"format_instructions": parser.get_format_instructions()}
+)
+
+chain4 = prompt4 | llm | parser
+
+result4 = chain4.invoke({"query": "Tell me about France."})
+logger.info(f"Result type: {type(result4)}") # <class '__main__.Country'>
+logger.info(f"Result: {result4}")
+logger.info(f"Accessing field 'capital': {result4.capital}")
