@@ -64,7 +64,18 @@ def main():
     # 第一轮对话
     logger.info("User: Hi! My name is Bob.")
     response1 = with_message_history.invoke(
+        # 参数1: Input
+        # 常见问题：为何这里不需要传入 "history"？
+        # 答：因为 RunnableWithMessageHistory 会自动去后台加载历史记录，
+        # 并自动填充到 Prompt 中的 MessagesPlaceholder(variable_name="history")。
+        # 你只需要传入新产生的变量（如 "input"）。
         {"input": "Hi! My name is Bob."},
+
+        # 参数2: Config
+        # 常见问题：config 的作用是什么？
+        # 答：它是 LangChain 传递元数据（Metadata）的标准方式。
+        # RunnableWithMessageHistory 需要知道"当前是谁在聊天"，以便去数据库加载正确的记录。
+        # 这里的 session_id="session_1" 会被传给上面的 get_session_history(session_id) 函数。
         config={"configurable": {"session_id": "session_1"}}
     )
     logger.info(f"AI: {response1.content}")
